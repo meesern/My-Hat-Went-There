@@ -1,0 +1,9 @@
+
+               My Hat Went There
+	     ====================
+
+
+A prototype implementation of an object witness client for the Object Container project.  My  Hat went There reports gps tracklogs to the "What Happened" object container service.
+
+This is a titanium developer project.  Executables are stored in the 'dist' directory.
+
