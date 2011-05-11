@@ -1,7 +1,7 @@
 
-#require 'rubygems'
+require 'rubygems'
 require 'bundler/setup'
-require 'xmpp-simple'
+require 'xmpp4r-simple'
 require 'time'
 require 'thread'
 

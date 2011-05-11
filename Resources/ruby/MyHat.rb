@@ -4,7 +4,7 @@ require 'rubygems'
 require 'bundler/setup'
 require 'xmpp4r-simple'
 require 'hpricot'
-require 'ocwitness'
+require 'ruby/ocwitness'
 
 #Gubbins to find bundled gems in Titanium.  use Gemfile and 'bundle' to add new ones.
 begin
