@@ -1,6 +1,7 @@
 #!/usr/bin/ruby -w
 
 require 'rubygems'
+require 'bundler/setup'
 require 'xmpp4r-simple'
 require 'hpricot'
 require 'ocwitness'
