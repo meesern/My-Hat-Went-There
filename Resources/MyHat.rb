@@ -33,7 +33,7 @@ end
 
 def uploadFile(file)
   ti_file = Titanium.Filesystem.getFile(file)
-  puts("*****************************************************************")
+  Titanium.API.log("****Reading File****")
   AppReport("no file found") unless ti_file.isFile()
 
   # gpx file trackpoint format looks like:
@@ -45,10 +45,10 @@ def uploadFile(file)
   #parse the xml file
   doc = open(ti_file.toString) { |f| Hpricot(f) }
 
-  puts("-----------------------------------------------------------------")
+  Titanium.API.log("----Hpricot Loaded----")
 
   #collect all the 'trkpt' elements
-  coords = doc.search("//trkpt").map do |tp|
+  $coords = doc.search("//trkpt").map do |tp|
     #elevation is the contents of the 'ele' element
     ele  = tp.at('ele').inner_html
     #time is the contents of the 'time' element
@@ -60,23 +60,43 @@ def uploadFile(file)
     {:lat=>lat, :lon=>lon, :ele=>ele, :time=>time}
   end
 
-  AppReport("Coords: #{coords.length}")
+  Titanium.API.log("----Mapped Coords----")
+
+  AppReport("Coords: #{$coords.length}")
 
   AppReport("Connect to Jabber")
-  ocw = OcWitness.new
-  ocw.connect
+  $ocw = OcWitness.new
+  $ocw.connect
+  AppReport("Connected") if $ocw.connected?
 
-  AppReport("Connected") if ocw.connected?
-
-  coords.each do |coord|
-    measurement = "<point><lat>#{coord[:lat]}</lat><lon>#{coord[:lon]}</lon><ele>#{coord[:ele]}</ele></point>"
-    ocw.report(measurement, coord[:time])
+  $pushed = 0
+  $length = $coords.length
+  Thread.new begin
+    Titanium.API.log("----New Thread----")
+    AppReport("Uploading")
+    while ($pushed < $length)
+      push_reports
+      #Don't like slowing things down but it helps here
+      sleep 0.2
+    end
+    $coords = [] #attempt to free memory
+    AppReport("Reported") if $ocw.connected?
+    AppReport("That's Where my Hat Went...")
+  rescue
+    #report any exception
+    Titanium.API.log $!
+    raise
   end
-
-  AppReport("Reported") if ocw.connected?
-
-  puts "That's Where my Hat Went..."
-  sleep(1)
-
 end
+
+def push_reports
+  ssize = 500
+  Titanium.API.log("----#{ssize} Slice----")
+  $coords.slice($pushed,ssize).each do |coord|
+    measurement = "<point><lat>#{coord[:lat]}</lat><lon>#{coord[:lon]}</lon><ele>#{coord[:ele]}</ele></point>"
+    $ocw.report(measurement, coord[:time])
+    $pushed += 1
+  end
+end
+
 

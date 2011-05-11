@@ -13,9 +13,9 @@
 <id>initial</id>
 <title>My Hat Went There</title>
 <url>app://index.html</url>
-<width>300</width>
+<width>310</width>
 <max-width>3000</max-width>
-<min-width>300</min-width>
+<min-width>310</min-width>
 <height>500</height>
 <max-height>3000</max-height>
 <min-height>0</min-height>
