@@ -7,6 +7,7 @@ require 'hpricot'
 require 'ruby/ocwitness'
 
 #Gubbins to find bundled gems in Titanium.  use Gemfile and 'bundle' to add new ones.
+#NOTE this may be the wrong path now
 begin
   root = File.expand_path(File.dirname(Titanium.App.getPath))
 rescue
@@ -17,25 +18,10 @@ Gem.use_paths(gem_path)
 
 Titanium.API.log("Starting Ruby Module")
 
-# Select a test file for now.
-$filerel  = "../../My\ Hat\ gps/etrex-001.gpx"
-$testfile = File.join(root,$filerel)
-
-def fileChosen(filenames)
-  Titanium.API.log filenames
-  return unless filenames.length > 0
-  filenames.each { |file| processFile(file) }
-end
-
-def processFile(filename)
-  viewUpload(filename)
-  uploadFile(filename)
-end
-
-def uploadFile(file)
+def myHat_uploadFile(file)
   ti_file = Titanium.Filesystem.getFile(file)
   Titanium.API.log("****Reading File****")
-  AppReport("no file found") unless ti_file.isFile()
+  AppReport("No file found") unless ti_file.isFile()
 
   # gpx file trackpoint format looks like:
   #<trkpt lat="52.401180267" lon="-1.465151310">
@@ -76,7 +62,7 @@ def uploadFile(file)
     Titanium.API.log("----New Thread----")
     AppReport("Uploading")
     while ($pushed < $length)
-      push_reports
+      myHat_push_reports
       #Don't like slowing things down but it helps here
       sleep 0.2
     end
@@ -90,7 +76,7 @@ def uploadFile(file)
   end
 end
 
-def push_reports
+def myHat_push_reports
   ssize = 500
   Titanium.API.log("----#{ssize} Slice----")
   $coords.slice($pushed,ssize).each do |coord|
@@ -99,5 +85,6 @@ def push_reports
     $pushed += 1
   end
 end
+
 
 
