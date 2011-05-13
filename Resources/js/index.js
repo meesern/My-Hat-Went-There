@@ -9,14 +9,43 @@ MhUi.Loaded = function()
 
     AppCtl.uploads = 0;
 
-
     //requiring jquery
     var button = $('#b1');
     if (button == null) alert("Element b1 not found");
     button.click(MhUi.ChooseFile);
+
+    //Add configuration options
+    var cfg = $('#oc-config-content');
+
+    cfg.append("\
+    <fieldset> \
+    <legend> Reporting Type </legend> \
+      <p><label> <input id='xmpp-radio' type=radio name=type> XMPP </label></p> \
+      <p><label> <input id='html-radio' type=radio name=type> HTML </label></p> \
+    </fieldset> \
+    ");
+
+    var sel = (AppCtl.getReportType() == 'xmpp')?'#xmpp-radio':'#html-radio'
+    $(sel).attr('checked','true');
+
+    $('#xmpp-radio').change(MhUi.ReportType('html'));
+    $('#html-radio').change(MhUi.ReportType('html'));
+
     AppReport("Waiting for file to upload");
 
 };
+
+
+
+MhUi.ReportType = function(type)
+{
+  if (type == 'html')
+    AppCtl.ocReportBy = "html";
+  else
+    AppCtl.ocReportBy = "xmpp";
+  //Store for another time
+  AppCtl.setReportType(AppCtl.ocReportBy);
+}
 
 
 

@@ -34,4 +34,46 @@ AppCtl.open_file_dialog_callback = function(filenames) {
 } 
 
 
+//
+// get report type from DB
+//
+AppCtl.getReportType = function()
+{
+	var reportType = AppCtl.ocReportBy;
+	try
+	{
+		var dbrow = AppCtl.db.execute('SELECT * from REPORTT');
+		if (dbrow.isValidRow())
+		{
+			reportType = dbrow.fieldByName('report');
+		}
+	}
+	catch (e)
+	{
+		AppCtl.db.execute('CREATE TABLE REPORTT (report TEXT)');;
+	}
+	return reportType;
+};
+
+//
+// set permissions
+//
+AppCtl.setReportType = function(type)
+{
+	function insertValues()
+	{
+		AppCtl.db.execute('INSERT INTO REPORTT (report)  VALUES (?)',type);
+	};
+
+	try
+	{
+		AppCtl.db.execute('DELETE FROM REPORTT');
+		insertValues();
+	}
+	catch(e)
+	{
+		AppCtl.db.execute('CREATE TABLE REPORTT (report TEXT)');
+		insertValues();
+	}
+};
 
