@@ -1,5 +1,6 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<ti:app xmlns:ti='http://ti.appcelerator.org'>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ti:app xmlns:ti="http://ti.appcelerator.org">
+    <description>Test framework for Object Container infrastrcuture</description>
 <!-- These values are edited/maintained by Titanium Developer -->
 <id>uk.ac.horizon.mhwthere</id>
 <name>My Hat Went There</name>
