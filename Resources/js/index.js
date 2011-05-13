@@ -25,8 +25,8 @@ MhUi.Loaded = function()
     </fieldset> \
     <fieldset>  \
     <legend> JID: Name@Server </legend> \
-      <p><label> <input id='dest' type=text name=dest/> Name </label></p> \
-      <p><label> <input id='server' type=text name=server/> Server Name </label></p> \
+      <p><label> Name </label> <input id='dest' type=text name=dest/></p> \
+      <p><label> Server Name </label> <input id='server' type=text name=server/></p> \
     </fieldset> \
     ");
 

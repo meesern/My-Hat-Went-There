@@ -2,6 +2,10 @@
 //Create js controller object
 AppCtl = {};
 
+//Ruby Interface Functions
+function appctl_getOcDest()  { return AppCtl.getOcDest() };
+function appctl_getOcServer(){ return AppCtl.getOcServer() };
+
 // Track preferences
 AppCtl.db = Titanium.Database.open("MyHat");
 

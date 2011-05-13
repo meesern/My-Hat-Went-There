@@ -9,9 +9,7 @@ MAX_STANZA = (1<<16)-1
 
 class OcWitness
   def initialize(opts = {})
-    opts[:username] ||= 'hatlocation'  #obviously needs to move out of OcWitness
     opts[:server]   ||= 'greenbean'
-    opts[:password] ||= 'jabber'
     opts[:ocname]   ||= 'whathappened'
     @username =  opts[:username]
     @server =    opts[:server]

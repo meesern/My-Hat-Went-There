@@ -52,7 +52,12 @@ def myHat_uploadFile(file)
   AppReport("Coords: #{$coords.length}")
 
   AppReport("Connect to Jabber")
-  $ocw = OcWitness.new
+  $ocw = OcWitness.new({ 
+    :username => 'hatlocation',
+    :password => 'jabber',
+    :server => appctl_getOcServer(),
+    :ocname => appctl_getOcDest()
+  })
   $ocw.connect
   AppReport("Connected") if $ocw.connected?
 
