@@ -20,8 +20,13 @@ MhUi.Loaded = function()
     cfg.append("\
     <fieldset> \
     <legend> Reporting Type </legend> \
-      <p><label> <input id='xmpp-radio' type=radio name=type> XMPP </label></p> \
-      <p><label> <input id='html-radio' type=radio name=type> HTML </label></p> \
+      <p><label> <input id='xmpp-radio' type=radio name=type/> XMPP </label></p> \
+      <p><label> <input id='html-radio' type=radio name=type/> HTML </label></p> \
+    </fieldset> \
+    <fieldset>  \
+    <legend> JID: Name@Server </legend> \
+      <p><label> <input id='dest' type=text name=dest/> Name </label></p> \
+      <p><label> <input id='server' type=text name=server/> Server Name </label></p> \
     </fieldset> \
     ");
 
@@ -30,6 +35,9 @@ MhUi.Loaded = function()
 
     $('#xmpp-radio').change(MhUi.ReportType('html'));
     $('#html-radio').change(MhUi.ReportType('html'));
+
+    $('#dest').attr('value',AppCtl.getOcDest());
+    $('#server').attr('value',AppCtl.getOcServer());
 
     AppReport("Waiting for file to upload");
 
