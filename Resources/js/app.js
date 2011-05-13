@@ -5,6 +5,7 @@ AppCtl = {};
 //Ruby Interface Functions
 function appctl_getOcDest()  { return AppCtl.getOcDest() };
 function appctl_getOcServer(){ return AppCtl.getOcServer() };
+function appctl_getReportType(){ return AppCtl.getReportType() };
 
 // Track preferences
 AppCtl.db = Titanium.Database.open("MyHat");

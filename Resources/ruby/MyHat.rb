@@ -55,6 +55,7 @@ def myHat_uploadFile(file)
   $ocw = OcWitness.new({ 
     :username => 'hatlocation',
     :password => 'jabber',
+    :type   => appctl_getReportType(),
     :server => appctl_getOcServer(),
     :ocname => appctl_getOcDest()
   })

@@ -11,10 +11,13 @@ class OcWitness
   def initialize(opts = {})
     opts[:server]   ||= 'greenbean'
     opts[:ocname]   ||= 'whathappened'
+    opts[:port]     ||= '3000'
+    @report_type =  opts[:type]
     @username =  opts[:username]
     @server =    opts[:server]
     @password =  opts[:password]
     @ocname =    opts[:ocname]
+    @html_port = opts[:port]
     @blob = Blob.new
     @mutex = Mutex.new
     Thread.new { loop { visit; sleep 0.2 }}
@@ -55,10 +58,23 @@ class OcWitness
     return if @blob.empty?
     @mutex.synchronize {
       @blob.send! { |b|
-        @im.deliver(@ocname+"@"+@server, b) 
+        deliver_xmpp(b) if @report_type == 'xmpp'
+        deliver_html(b) if @report_type != 'xmpp'
       }
     }
   end
+
+  def deliver_xmpp(b)
+    @im.deliver(@ocname+"@"+@server, b) 
+  end
+
+  def deliver_html(b)
+    #post http://server/file_a_report/
+    h = Net::HTTP.new(@server, @html_port)
+    #post 2 does not raise exceptions.  Nil headers, do nothing with response
+    h.post2('file_a_report', b, nil ) 
+  end
+
 end
 
 class Blob
