@@ -34,45 +34,75 @@ AppCtl.open_file_dialog_callback = function(filenames) {
 } 
 
 
-//
-// get report type from DB
-//
+// Reporting Type
 AppCtl.getReportType = function()
 {
-	var reportType = AppCtl.ocReportBy;
+	return AppCtl.getOneLineDb('RTYPE', AppCtl.ocReportBy);
+};
+AppCtl.setReportType = function(val)
+{
+	AppCtl.setOneLineDb('RTYPE',val);
+};
+
+// Server Name
+AppCtl.getOcServer = function()
+{
+	return AppCtl.getOneLineDb('OCSERVER', AppCtl.ocServer);
+}
+AppCtl.setOcServer = function(val)
+{
+	AppCtl.setOneLineDb('OCSERVER',val);
+};
+
+// Server Jid Name
+AppCtl.getOcDest = function()
+{
+	return AppCtl.getOneLineDb('OCDEST', AppCtl.ocDestination);
+}
+AppCtl.setOcDest = function(val)
+{
+	AppCtl.setOneLineDb('OCDEST',val);
+};
+
+//
+//  Persist a value in a one line database table
+//
+AppCtl.getOneLineDb = function(table, init)
+{
+	var val = init;
 	try
 	{
-		var dbrow = AppCtl.db.execute('SELECT * from REPORTT');
+		var dbrow = AppCtl.db.execute('SELECT * from '+table);
 		if (dbrow.isValidRow())
 		{
-			reportType = dbrow.fieldByName('report');
+			val = dbrow.fieldByName('value');
 		}
 	}
 	catch (e)
 	{
-		AppCtl.db.execute('CREATE TABLE REPORTT (report TEXT)');;
+		AppCtl.db.execute('CREATE TABLE '+table+' (value TEXT)');;
 	}
-	return reportType;
+	return val;
 };
 
 //
-// set permissions
+//  Persist a value in a one line database table
 //
-AppCtl.setReportType = function(type)
+AppCtl.setOneLineDb = function(table, val)
 {
 	function insertValues()
 	{
-		AppCtl.db.execute('INSERT INTO REPORTT (report)  VALUES (?)',type);
+		AppCtl.db.execute('INSERT INTO '+table+' (value)  VALUES (?)',val);
 	};
 
 	try
 	{
-		AppCtl.db.execute('DELETE FROM REPORTT');
+		AppCtl.db.execute('DELETE FROM '+table);
 		insertValues();
 	}
 	catch(e)
 	{
-		AppCtl.db.execute('CREATE TABLE REPORTT (report TEXT)');
+		AppCtl.db.execute('CREATE TABLE '+table+' (value TEXT)');
 		insertValues();
 	}
 };
