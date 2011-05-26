@@ -6,6 +6,7 @@ AppCtl = {};
 function appctl_getOcDest()  { return AppCtl.getOcDest() };
 function appctl_getOcServer(){ return AppCtl.getOcServer() };
 function appctl_getReportType(){ return AppCtl.getReportType() };
+function appctl_getPort()    { return AppCtl.getPort() };
 
 // Track preferences
 AppCtl.db = Titanium.Database.open("MyHat");
@@ -16,6 +17,7 @@ AppCtl.notification = Titanium.Notification.createNotification(window);
 // Factory Defaults
 AppCtl.baseDir = "../../My Hat gps";
 AppCtl.ocReportBy = "xmpp";
+AppCtl.ocPort = "3000";
 AppCtl.ocServer = "greenbean";
 AppCtl.ocUser   = "hatlocation";
 AppCtl.ocPassword  = "jabber";
@@ -47,6 +49,16 @@ AppCtl.getReportType = function()
 AppCtl.setReportType = function(val)
 {
 	AppCtl.setOneLineDb('RTYPE',val);
+};
+
+// Http Port
+AppCtl.getPort = function()
+{
+	return AppCtl.getOneLineDb('PORT', AppCtl.ocPort);
+};
+AppCtl.setPort = function(val)
+{
+	AppCtl.setOneLineDb('PORT',val);
 };
 
 // Server Name
