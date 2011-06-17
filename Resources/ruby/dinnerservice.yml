@@ -1,0 +1,28 @@
+#
+# Configuration necessary for PlateTracker.rb 
+# to store plate locations
+#
+storage:
+    itemname:  Tea Service
+    server:    greenbean
+    port:      3000
+
+cameras:
+  - name:     camera 1
+    streamid: 1
+  - name:     camera 2
+    streamid: 2
+
+tableware:
+  - name:        plate 1
+    code:        '1:2:3'
+    markercount:  3
+    
+  - name:        plate 2
+    code:        '1:1:2'
+    markercount:  3
+
+  - name:        plate 3
+    code:        '0:1:2'
+    markercount:  3
+

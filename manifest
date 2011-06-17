@@ -4,7 +4,7 @@
 #image:default_app_logo.png
 #url:http://www.horizon.ac.uk
 #guid:b1d182d3-4f9c-47f8-99d3-3406822c7fd0
-#desc:An object container client
+#desc:Test framework for Object Container infrastrcuture
 #type:desktop
 runtime:1.0.0
 javascript:1.0.0

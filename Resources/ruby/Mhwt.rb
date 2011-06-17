@@ -43,14 +43,6 @@ def myHat_uploadFile(file)
   $logger.info("Coords: #{$coords.length}")
 
   $logger.info("Connect to WhatHappened")
-  $ocw = OcWitness.new({ 
-    :username => 'hatlocation',
-    :password => 'jabber',
-    :port   => 80,
-    :type   => 'html',
-    :server => 'production.socksforlife.co.uk',
-    :ocname => 'whathappened'
-  })
 
   $pushed = 0
   $length = $coords.length
@@ -60,8 +52,6 @@ def myHat_uploadFile(file)
       $logger.info("Uploading")
       while ($pushed < $length)
 	myHat_push_reports
-	#Don't like slowing things down but it helps here
-	#sleep 0.2
       end
       $coords = [] #attempt to free memory
       $logger.info("That's Where my Hat Went...")
@@ -71,17 +61,29 @@ def myHat_uploadFile(file)
       raise
     end
   #end
-  $ocw.flush
 end
 
 def myHat_push_reports
-  ssize = 500
+  ssize = 50
   $logger.info("----#{ssize} Slice----")
+    #:port   => 80,
+    #:server => 'production.socksforlife.co.uk',
+  $ocw = OcWitness.new({ 
+    :username => 'hatlocation',
+    :password => 'jabber',
+    :port   => 3000,
+    :type   => 'html',
+    :server => 'greenbean',
+    :ocname => 'whathappened'
+  })
+
   $coords.slice($pushed,ssize).each do |coord|
     measurement = "<point><lat>#{coord[:lat]}</lat><lon>#{coord[:lon]}</lon><ele>#{coord[:ele]}</ele></point>"
     $ocw.report(measurement, coord[:time])
     $pushed += 1
   end
+
+  $ocw.flush
 end
 
 # Upload each file

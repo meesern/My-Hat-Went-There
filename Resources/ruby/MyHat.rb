@@ -63,14 +63,13 @@ def myHat_uploadFile(file)
 
   $pushed = 0
   $length = $coords.length
+  #Ruby threads seem to get killed by Titanium 
   #Thread.new do
     begin
       Titanium.API.log("----New Thread----")
       AppReport("Uploading")
       while ($pushed < $length)
 	myHat_push_reports
-	#Don't like slowing things down but it helps here
-	sleep 0.2
       end
       $coords = [] #attempt to free memory
       AppReport("That's Where my Hat Went...")
