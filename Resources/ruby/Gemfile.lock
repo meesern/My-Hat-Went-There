@@ -1,7 +1,6 @@
 GEM
   remote: http://rubygems.org/
   specs:
-    cobravsmongoose (0.0.2)
     columnize (0.3.2)
     hpricot (0.8.4)
     json (1.5.2)
@@ -12,6 +11,7 @@ GEM
       ruby-debug-base (~> 0.10.4.0)
     ruby-debug-base (0.10.4)
       linecache (>= 0.3)
+    xml-simple (1.0.15)
     xmpp4r (0.5)
     xmpp4r-simple (0.8.8)
       xmpp4r (>= 0.3.2)
@@ -20,9 +20,9 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  cobravsmongoose
   hpricot
   json
   nokogiri
   ruby-debug
+  xml-simple
   xmpp4r-simple

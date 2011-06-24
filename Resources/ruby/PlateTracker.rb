@@ -8,10 +8,77 @@ require 'xmpp4r-simple'
 require 'nokogiri'
 require 'ocwitness'
 #require 'trollop'  #command line parsing
+require 'ruby-debug'
 
 $logger = Logger.new(STDOUT)
 
 $logger.info("Plate Tracker")
+
+
+#Manage the local cofiguration
+class PlateSpinConfig
+  def initialize(filename)
+    @config = YAML::load(File.open(filename))
+  end
+
+  def item_name
+    @config['storage']["itemname"] 
+  end
+
+  def item_id=(id)
+    @config['storage']['itemid'] = id
+  end
+
+  def item_id
+    @config['storage']['itemid']
+  end
+
+  def tableware
+    @config['tableware']
+  end
+    
+  def plate(code)
+    @config['tableware'].find{|e| e['code'] == code}
+  end
+
+  def aspect(code)
+    wname = self.plate(code)['name']
+    ['aspects'][0]['id']
+  end
+
+  def entity_tree
+    {'entities' => self.tableware.map{|e| {
+        "name" => e['name'],
+	"aspects" => @config['cameras'].map{|c| 
+	    {"name"=>c['name']}
+	}
+    }}}
+  end
+
+  #This is all very very datastructury and not at all nice
+  def entity_tree=(ids)
+    @config['aspects'] ||= {}
+    @config['cameras'].each do |camera|
+      @config['aspects'][camera['streamid']] = {}
+      @config['tableware'].each do |plate|
+	@config['aspects'][camera['streamid']][plate['code']] = 
+	  aspect_for(ids, plate['name'], camera['name'])
+      end
+    end
+    puts @config.inspect
+  end
+
+  def aspect_for(ents, plate_name, camera_name)
+    plate = ents.find{ |e| e['name'] == plate_name}
+    aspect = plate['aspects'].find { |a| a['name'] == camera_name }
+    aspect['id']
+  end
+
+  def aspects
+    @config['aspects']
+  end
+
+end
 
 #
 # Open an xml file with collected vision system data
@@ -44,12 +111,13 @@ def processFile(file)
 
   doc.xpath("//stream").each do  |stream|
     sid = stream['id'] 
-    date = stream['date'].tap{|x| pp x}
+    european_date = '%d/%m/%Y'
+    date = Date.strptime(stream['date'], european_date).to_s
     stream.xpath("//marker").each do |marker|
-      time = date + marker['timestamp']
-      box = [marker['x1'],marker['y1'],marker['x2'],maker['y2']]
-      observation :camera => sid, :code => marker['code'], :time => time, 
-	:box => box, :marker => marker.to_s
+      time = date + " " + marker['timestamp']
+      box = [marker['x1'],marker['y1'],marker['x2'],marker['y2']]
+      observation 'camera' => sid, 'code' => marker['code'], 'time' => time, 
+	'box' => box, 'marker' => marker.to_s
     end
   end
 end
@@ -61,26 +129,20 @@ end
 # box:		The bounding box (array of x1,y1,x2,y2)
 # marker:	The marker xml (for storage)
 def observation( obs )
-  push_report :from => witnessid_for(sid), :about => aspectid_for(sid,code), 
-	       :at => time, :of => marker.to_s
+  push_report :from => witnessid_for(obs['camera'].to_i), 
+              :about => aspectid_for(obs['camera'].to_i,obs['code']), 
+	      :at => obs['time'], 
+	      :of => obs['marker'].to_s
 end
 
-def witnessid_for(stream_id)
-  1
-end
-
-def aspectid_for(sid,code)
-  @config['tableware'].find{|e| e.code == code}.aspectid
-end
 
 def push_report( param )
   param[:from]  ||= 1        #default witness id
   param[:about] ||= 1        #fake aspect id
   param[:at]    ||= Time.now #report time
   param[:of]                 #measurement
-  measurement = param[:of]
   #pp param
-  #$ocw.report(witness_id, attribute_id, measurement, param[:at])
+  $ocw.report(param[:from], param[:about], param[:of], param[:at])
 end
 
 
@@ -97,14 +159,39 @@ $ocw = OcWitness.new({
 })
 
 #Ensure that the Object Container has the tableware configured
-def cloudconnect(config)
-  items = $ocw.getItems  
-  myItem = items.find{ |item| item["name"] == config['storage']["itemname"] }
-  myItem ||= $ocw.itemCreate
-  config['storage']['itemid'] = myItem['id']
-  config['tableware'].each{ |e| registerEntity(e) }
+def cloudconnect()
+  #Get our item so we can use its id
+  myItem = gettheitem()
+  #Get the required entities
+  entities = @psconfig.entity_tree
+  #Ensure they exist on the cloud and update config with id's
+  ids =  $ocw.createItemTree(entities, myItem['id'])
+  @psconfig.entity_tree = ids
 end
 
+def gettheitem()
+  #Get all accessible items
+  items = $ocw.getItems  
+  #Find ours by name
+  myItem = items.detect{ |item| item["name"] == @psconfig.item_name }
+  if myItem.nil?
+    puts "Item #{@psconfig.item_name} does not exist.  Please create first."
+    exit(-1)
+  end
+  myItem
+end
+
+
+def witnessid_for(stream_id)
+  1
+end
+
+def aspectid_for(sid,code)
+  #sid is the camea
+  #code is the plate
+  #find the aspect...
+  @psconfig.aspects[sid][code]
+end
 
 ###########################
 #
@@ -116,8 +203,8 @@ end
 # {cameras => [{name =>.., streamid => ...}...]
 #  tableware => [{name => ..., code => ..., markercount => ...}...]}
 # hashes for cameras with stream id's and tableware with plates and codes
-@config = YAML::load(File.open('dinnerservice.yml'))
-cloudconnect(@config)
+@psconfig = PlateSpinConfig.new('dinnerservice.yml')
+cloudconnect()
 
 # Precess each file on the command line
 ARGV.each do |a|
@@ -127,6 +214,5 @@ end
 # Wait around for the upload to complete
 # This could be long and the join can time out
 $ocw.flush
-
 
 

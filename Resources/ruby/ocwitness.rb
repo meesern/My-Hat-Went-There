@@ -7,7 +7,7 @@ require 'thread'
 require 'net/http'
 require 'uri'
 require 'json'
-require 'cobravsmongoose'
+require 'xmlsimple'
 
 MAX_STANZA = (1<<16)-1   #max XMPP stanza / HTML post
 
@@ -23,7 +23,7 @@ class OcWitness
     @ocname =    opts[:ocname]
     @html_port = opts[:port]
     #Blob's colate measurements avoid 1 message per measurement
-    @blob = Blob.new
+    @blob = {}
     @mutex = Mutex.new
     connect if @report_type == 'xmpp'
     @run = true
@@ -58,7 +58,7 @@ class OcWitness
       case resp
       when Net::HTTPSuccess
 	puts resp.body
-	items = xml2obj(resp.body)
+	items = xml2obj(resp.body)['items']
       else
 	unexpected(resp.class)
       end
@@ -68,15 +68,16 @@ class OcWitness
 
   #######################
   # Create an item in the cloud
-  def createItem(hash)
-    xml = obj2xml(hash)
+  def createItemTree(hash, itemid)
+    xml = obj2xml(hash, "entities")
     #post http://server/items
     items={}
     html do |h|
-      resp = h.post('/v1.0/items', "data=#{xml}", nil )
+      resp = h.post("/v1.0/items/#{itemid}", "data=#{xml}", nil )
       case resp
       when Net::HTTPSuccess
-	puts "Cloud updated successfully"
+	puts resp.body
+	items = xml2obj(resp.body)['entities']
       else
 	unexpected(resp.class)
       end
@@ -85,11 +86,12 @@ class OcWitness
   end
 
   def xml2obj(blob)
-    CobraVsMongoose.xml_to_hash(blob)
+    XmlSimple.xml_in(blob, "ForceArray" => false)
   end
 
-  def obj2xml(hash)
-    hash.to_xml
+  def obj2xml(hash, name)
+    XmlSimple.xml_out(hash, "RootName"=>'entities',
+		            "NoAttr"=>true).tap{|x| puts x.inspect}
   end
 
   def unexpected(message)
@@ -110,12 +112,15 @@ class OcWitness
     t = Time.parse(time).utc.iso8601(0)
 
     #wrap the measurement up in the xml that OC requires
-    report = "<t>#{t}</t><ment>#{measurement.inspect}</ment>"
+    report = "<t>#{t}</t><ment>#{measurement}</ment>"
 
     #Accumulate in a blob until it's time to send
-    @mutex.synchronize {
-      @blob.add!(report)
-    }
+    @mutex.synchronize do
+      #create the array of blobs-to-report on the fly
+      @blob[from] ||= {}
+      @blob[from][about] ||= Blob.new
+      @blob[from][about].add!(report)
+    end
   end
 
   #Alias for flush
@@ -131,25 +136,27 @@ class OcWitness
 
   protected
   def visit
-    begin
-      return if @blob.empty?
-      puts "Something to send."
-      @mutex.synchronize {
-	@blob.send! { |b|
-	  deliver_xmpp(b) if @report_type == 'xmpp'
-	  deliver_html(b) if @report_type != 'xmpp'
+    @blob.each_pair do |from, hash|
+      hash.each_pair do |about, blob|
+	next if blob.empty?
+	puts "Something to send"
+	@mutex.synchronize {
+	  blob.send! { |b|
+	    deliver_xmpp(b, from, about) if @report_type == 'xmpp'
+	    deliver_html(b, from, about) if @report_type != 'xmpp'
+	  }
 	}
-      }
-    rescue
-      # Report any exception
-      # Needed for Debug as the thread context seems to soak up
-      # the usual exception processing
-      puts $!
-      raise
+      end
     end
+  rescue
+    # Report any exception
+    # Needed for Debug as the thread context seems to soak up
+    # the usual exception processing
+    puts $!
+    raise
   end
 
-  def deliver_xmpp(b)
+  def deliver_xmpp(b, from, about)
     connect unless connected?
     @im.deliver(@ocname+"@"+@server, b) 
   end
@@ -172,13 +179,13 @@ class OcWitness
   # Send to Object Container
   #
   ###########################
-  def deliver_html(b)
-    #post http://server/file_a_report/aspect
+  def deliver_html(b, from, about)
+    #NOTE Ignoring from(witness) for now
+    #post http://server/v1.0/file_a_report/aspect
     html do |h|
       puts "Post"
       #post2 does not raise exceptions. nil headers 
-      #aspect id (3) is bogus.
-      h.post('/file_a_report/3', "data=#{b}", nil ) {|response| 
+      h.post("/v1.0/file_a_report/#{about}", "data=#{b}", nil ) {|response| 
 	puts "got response" } 
     end
   end

@@ -2,9 +2,9 @@
 source "http://rubygems.org"
 
 gem "xmpp4r-simple"
+gem "xml-simple"
 gem "hpricot"
 gem "nokogiri"
-gem "cobravsmongoose"
 gem "json"
 gem "ruby-debug"
 
