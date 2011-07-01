@@ -21,6 +21,14 @@ class PlateSpinConfig
     @config = YAML::load(File.open(filename))
   end
 
+  def server
+    @config['storage']['server']
+  end
+
+  def port
+    @config['storage']['port']
+  end
+
   def item_name
     @config['storage']["itemname"] 
   end
@@ -145,19 +153,6 @@ def push_report( param )
   $ocw.report(param[:from], param[:about], param[:of], param[:at])
 end
 
-
-#Do some options parsing for local or cloud
-  #:port   => 80,
-  #:server => 'production.socksforlife.co.uk',
-$ocw = OcWitness.new({ 
-  :username => 'hatlocation',
-  :password => 'jabber',
-  :port   =>  3000,
-  :type   => 'html',
-  :server => 'greenbean',
-  :ocname => 'whathappened'
-})
-
 #Ensure that the Object Container has the tableware configured
 def cloudconnect()
   #Get our item so we can use its id
@@ -204,6 +199,18 @@ end
 #  tableware => [{name => ..., code => ..., markercount => ...}...]}
 # hashes for cameras with stream id's and tableware with plates and codes
 @psconfig = PlateSpinConfig.new('dinnerservice.yml')
+#Do some options parsing for local or cloud
+  #:port   => 80,
+  #:server => 'production.socksforlife.co.uk',
+$ocw = OcWitness.new({ 
+  :username => 'hatlocation',
+  :password => 'jabber',
+  :port   =>  @psconfig.port,
+  :type   => 'html',
+  :server => @psconfig.server,
+  :ocname => 'whathappened'
+})
+
 cloudconnect()
 
 # Precess each file on the command line

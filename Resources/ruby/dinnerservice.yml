@@ -4,8 +4,8 @@
 #
 storage:
     itemname:  Tea Service
-    server:    greenbean
-    port:      3000
+    server:    production.socksforlife.co.uk
+    port:      80
 
 cameras:
   - name:     camera 1
