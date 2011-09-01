@@ -112,7 +112,7 @@ class OcWitness
     t = Time.parse(time).utc.iso8601(0)
 
     #wrap the measurement up in the xml that OC requires
-    report = "<t>#{t}</t><ment>#{measurement}</ment>"
+    report = "<ment t='#{t}'>#{measurement}</ment>"
 
     #Accumulate in a blob until it's time to send
     @mutex.synchronize do
