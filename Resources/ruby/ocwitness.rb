@@ -54,7 +54,7 @@ class OcWitness
     #get http://server/items
     items = {}
     html do |h|
-      resp = h.get('/v1.0/items/', nil )
+      resp = h.get('/v1/items/', nil )
       case resp
       when Net::HTTPSuccess
 	puts resp.body
@@ -73,7 +73,7 @@ class OcWitness
     #post http://server/items
     items={}
     html do |h|
-      resp = h.post("/v1.0/items/#{itemid}", "data=#{xml}", nil )
+      resp = h.post("/v1/items/#{itemid}", "data=#{xml}", nil )
       case resp
       when Net::HTTPSuccess
 	puts resp.body
@@ -181,11 +181,11 @@ class OcWitness
   ###########################
   def deliver_html(b, from, about)
     #NOTE Ignoring from(witness) for now
-    #post http://server/v1.0/file_a_report/aspect
+    #post http://server/v1/file_a_report/aspect
     html do |h|
       puts "Post"
       #post2 does not raise exceptions. nil headers 
-      h.post("/v1.0/file_a_report/#{about}", "data=#{b}", nil ) {|response| 
+      h.post("/v1/file_a_report/#{about}", "data=#{b}", nil ) {|response| 
 	puts "got response" } 
     end
   end

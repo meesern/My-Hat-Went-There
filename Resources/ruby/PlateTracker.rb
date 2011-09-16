@@ -188,11 +188,30 @@ def aspectid_for(sid,code)
   @psconfig.aspects[sid][code]
 end
 
+def usage_stop
+  usage
+  exit
+end
+
+def usage
+puts <<USAGE
+
+
+Usage:
+  ./PlateTracker.rb <xml_file_to_upload> <xml_file_to_upload>*
+
+  specify options for server etc. in colocated dinnerservice.yml
+
+USAGE
+end
+
 ###########################
 #
 #     Start Here....
 #
 ###########################
+
+usage_stop if ARGV.empty?
 
 # Load the config
 # {cameras => [{name =>.., streamid => ...}...]

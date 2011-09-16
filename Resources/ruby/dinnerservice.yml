@@ -4,7 +4,7 @@
 #
 storage:
     itemname:  Tea Service
-    server:    production.socksforlife.co.uk
+    server:    www.socksforlife.co.uk
     port:      80
 
 cameras:
