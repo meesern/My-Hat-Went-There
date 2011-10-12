@@ -106,13 +106,13 @@ class OcWitness
   # measurement: xml fragment
   # time:  unformatted time of measurement
   #
-  def report(from, about, measurement, time = nil)
+  def report(from, about, measurement, time = nil, second = 0.0)
     time ||= 'now'
     #take any time and report in UTC ISO 8601
     t = Time.parse(time).utc.iso8601(0)
 
     #wrap the measurement up in the xml that OC requires
-    report = "<ment t='#{t}'>#{measurement}</ment>"
+    report = "<ment t='#{t}' s='#{second}'>#{measurement}</ment>"
 
     #Accumulate in a blob until it's time to send
     @mutex.synchronize do

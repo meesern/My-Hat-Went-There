@@ -140,6 +140,7 @@ def observation( obs )
   push_report :from => witnessid_for(obs['camera'].to_i), 
               :about => aspectid_for(obs['camera'].to_i,obs['code']), 
 	      :at => obs['time'], 
+              :sec => second_for(obs['time']),
 	      :of => obs['marker'].to_s
 end
 
@@ -148,9 +149,10 @@ def push_report( param )
   param[:from]  ||= 1        #default witness id
   param[:about] ||= 1        #fake aspect id
   param[:at]    ||= Time.now #report time
+  param[:sec]||= 0.0
   param[:of]                 #measurement
   #pp param
-  $ocw.report(param[:from], param[:about], param[:of], param[:at])
+  $ocw.report(param[:from], param[:about], param[:of], param[:at], param[:sec])
 end
 
 #Ensure that the Object Container has the tableware configured
@@ -179,6 +181,13 @@ end
 
 def witnessid_for(stream_id)
   1
+end
+
+def second_for(time)
+  # 29/6/10 10:32.750   => 0.750
+  # 20/6/10 10:30       => 0.
+  # Substitute everything not a dot until dot or end
+  time.sub(/^[^.]*(\.|$)/,"0.")
 end
 
 def aspectid_for(sid,code)
