@@ -8,8 +8,10 @@ require 'net/http'
 require 'uri'
 require 'json'
 require 'xmlsimple'
+require 'ruby-debug'
 
 MAX_STANZA = (1<<16)-1   #max XMPP stanza / HTML post
+MAX_REPORTS = 250
 
 class OcWitness
   def initialize(opts = {})
@@ -58,7 +60,7 @@ class OcWitness
       case resp
       when Net::HTTPSuccess
 	puts resp.body
-	items = xml2obj(resp.body)['items']
+	items = json2obj(resp.body)
       else
 	unexpected(resp.class)
       end
@@ -69,15 +71,15 @@ class OcWitness
   #######################
   # Create an item in the cloud
   def createItemTree(hash, itemid)
-    xml = obj2xml(hash, "entities")
+    json = obj2json(hash, "entities")
     #post http://server/items
     items={}
     html do |h|
-      resp = h.post("/v1/items/#{itemid}", "data=#{xml}", nil )
+      resp = h.post("/v1/items/#{itemid}", "data=#{json}", nil )
       case resp
       when Net::HTTPSuccess
 	puts resp.body
-	items = xml2obj(resp.body)['entities']
+	items = json2obj(resp.body)
       else
 	unexpected(resp.class)
       end
@@ -85,13 +87,14 @@ class OcWitness
     items
   end
 
-  def xml2obj(blob)
-    XmlSimple.xml_in(blob, "ForceArray" => false)
+  def json2obj(blob)
+    JSON.parse(blob)
   end
 
-  def obj2xml(hash, name)
-    XmlSimple.xml_out(hash, "RootName"=>'entities',
-		            "NoAttr"=>true).tap{|x| puts x.inspect}
+  def obj2json(hash, name)
+    #XmlSimple.xml_out(hash, "RootName"=>'entities',
+    #		            "NoAttr"=>true).tap{|x| puts x.inspect}
+    hash.to_json
   end
 
   def unexpected(message)
@@ -103,7 +106,7 @@ class OcWitness
   #
   # from:  witness id
   # about: aspect id
-  # measurement: xml fragment
+  # measurement: json fragment
   # time:  unformatted time of measurement
   #
   def report(from, about, measurement, time = nil, second = 0.0)
@@ -111,8 +114,9 @@ class OcWitness
     #take any time and report in UTC ISO 8601
     t = Time.parse(time).utc.iso8601(0)
 
-    #wrap the measurement up in the xml that OC requires
-    report = "<ment t='#{t}' s='#{second}'>#{measurement}</ment>"
+    #wrap the measurement up in the json that OC requires
+    #report = "<ment t='#{t}' s='#{second}'>#{measurement}</ment>"
+    report =  { :t => t, :s => second, :ment => JSON.parse(measurement) }
 
     #Accumulate in a blob until it's time to send
     @mutex.synchronize do
@@ -216,16 +220,17 @@ class Blob
     @chunk.empty? && @chunks.empty?
   end
 
+  #data in native format
   def add!(data)
     return if data.empty?
-    chunk! if (@chunk.length + data.length > MAX_STANZA)
+    chunk! if (@chunk.length > MAX_REPORTS)
     @chunk << data
   end
 
   def send!
     chunk!
     @chunks.each { |blob| 
-      yield blob
+      yield blob.to_json
     }
     empty!
   end
@@ -233,12 +238,12 @@ class Blob
   protected
   def chunk!
     @chunks << @chunk
-    @chunk = ""
+    @chunk = []
   end
 
   def empty!
     @chunks = []
-    @chunk = ""
+    @chunk = []
   end
 end
 

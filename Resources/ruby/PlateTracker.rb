@@ -14,6 +14,33 @@ $logger = Logger.new(STDOUT)
 
 $logger.info("Plate Tracker")
 
+#
+# Nokogiri to JSON helper
+#
+class Nokogiri::XML::Document
+  def to_json(*a)
+    root.to_json(*a)
+  end
+end
+class Nokogiri::XML::Node
+  def to_json(*a)
+    {
+      #:name => name,
+      #:text => text,
+      #:children => children.to_a,
+    }.merge(attributes).to_json(*a)
+  end
+end
+class Nokogiri::XML::Text
+  def to_json(*a)
+    text.to_json(*a)
+  end
+end
+class Nokogiri::XML::Attr
+  def to_json(*a)
+    value.to_json(*a)
+  end
+end
 
 #Manage the local cofiguration
 class PlateSpinConfig
@@ -77,7 +104,7 @@ class PlateSpinConfig
   end
 
   def aspect_for(ents, plate_name, camera_name)
-    plate = ents.find{ |e| e['name'] == plate_name}
+    plate = ents['entities'].find{ |e| e['name'] == plate_name}
     aspect = plate['aspects'].find { |a| a['name'] == camera_name }
     aspect['id']
   end
@@ -125,7 +152,7 @@ def processFile(file)
       time = date + " " + marker['timestamp']
       box = [marker['x1'],marker['y1'],marker['x2'],marker['y2']]
       observation 'camera' => sid, 'code' => marker['code'], 'time' => time, 
-	'box' => box, 'marker' => marker.to_s
+	'box' => box, 'marker' => marker.to_json
     end
   end
 end
@@ -135,7 +162,7 @@ end
 # code:		The dtouch code detected
 # time:		The detection time (imprecise format)
 # box:		The bounding box (array of x1,y1,x2,y2)
-# marker:	The marker xml (for storage)
+# marker:	The marker JSON (for storage)
 def observation( obs )
   push_report :from => witnessid_for(obs['camera'].to_i), 
               :about => aspectid_for(obs['camera'].to_i,obs['code']), 
